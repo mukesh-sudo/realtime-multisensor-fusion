@@ -6,32 +6,35 @@
 #include <thread>
 
 // Sensor frequencies in Hz
-static const double SENSOR_FREQS[4] = { 96000.0, 71000.0, 69900.0, 23000.0 };
+static const double SENSOR_FREQS[NUM_SENSORS] = { 96000.0, 71000.0, 69900.0, 23000.0 };
 
 Aggregator::Aggregator(int window_size, int run_seconds)
     : window_size_(window_size),
       run_seconds_(run_seconds),
       stop_flag_(false),
       window_(window_size)
-{}
+{
+    for (int i = 0; i < NUM_SENSORS; i++) {
+        simulators_[i] = NULL;
+    }
+}
 
 Aggregator::~Aggregator() {
-    for (int i = 0; i < static_cast<int>(simulators_.size()); i++) {
+    for (int i = 0; i < NUM_SENSORS; i++) {
         delete simulators_[i];
     }
 }
 
 void Aggregator::run() {
     // Create and launch 4 sensor producer threads
-    for (int i = 0; i < 4; i++) {
-        SensorSimulator* sim = new SensorSimulator(i, SENSOR_FREQS[i],
-                                                   &queue_, &stop_flag_);
-        simulators_.push_back(sim);
-        threads_.push_back(std::thread(&SensorSimulator::run, sim));
+    for (int i = 0; i < NUM_SENSORS; i++) {
+        simulators_[i] = new SensorSimulator(i, SENSOR_FREQS[i],
+                                             &queue_, &stop_flag_);
+        threads_[i] = std::thread(&SensorSimulator::run, simulators_[i]);
     }
 
     // Launch consumer thread
-    threads_.push_back(std::thread(&Aggregator::consume, this));
+    threads_[NUM_SENSORS] = std::thread(&Aggregator::consume, this);
 
     // Run for the configured duration then stop
     std::this_thread::sleep_for(std::chrono::seconds(run_seconds_));
@@ -39,8 +42,10 @@ void Aggregator::run() {
     queue_.shutdown();
 
     // Join all threads
-    for (int i = 0; i < static_cast<int>(threads_.size()); i++) {
-        threads_[i].join();
+    for (int i = 0; i <= NUM_SENSORS; i++) {
+        if (threads_[i].joinable()) {
+            threads_[i].join();
+        }
     }
 
     std::cout << "Aggregator stopped after " << run_seconds_ << " seconds." << std::endl;

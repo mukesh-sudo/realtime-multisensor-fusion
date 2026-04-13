@@ -1,7 +1,6 @@
 #include "aggregator.h"
 #include <iostream>
-#include <cstdlib>   // atoi(), srand()
-#include <ctime>     // time()
+#include <cstdlib>   // atoi()
 
 int main(int argc, char* argv[]) {
     int window_size = 4096; // default, must be >= 4096 per assignment
@@ -25,8 +24,6 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Starting fusion pipeline: window=" << window_size
               << "  duration=" << run_seconds << "s" << std::endl;
-
-    srand(static_cast<unsigned int>(time(NULL)));
 
     Aggregator aggregator(window_size, run_seconds);
     aggregator.run();

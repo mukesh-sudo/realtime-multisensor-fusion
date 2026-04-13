@@ -9,7 +9,8 @@ SensorSimulator::SensorSimulator(int sensor_id, double freq_hz,
     : sensor_id_(sensor_id),
       freq_hz_(freq_hz),
       queue_(queue),
-      stop_flag_(stop_flag)
+      stop_flag_(stop_flag),
+      seed_(static_cast<unsigned int>(sensor_id + 1) * 1234567u)
 {}
 
 void SensorSimulator::run() {
@@ -17,8 +18,10 @@ void SensorSimulator::run() {
     long long interval_ns = static_cast<long long>(1.0e9 / freq_hz_);
 
     while (!stop_flag_->load()) {
-        // Generate a random value in [0.0, 100.0]
-        double value = 100.0 * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        // Per-thread LCG — thread-safe alternative to rand() which uses global state
+        seed_ = seed_ * 1103515245u + 12345u;
+        double value = 100.0 * static_cast<double>(seed_ & 0x7FFFFFFFu)
+                             / static_cast<double>(0x7FFFFFFFu);
 
         // Timestamp: nanoseconds from steady_clock (portable, explicit)
         uint64_t ts = static_cast<uint64_t>(

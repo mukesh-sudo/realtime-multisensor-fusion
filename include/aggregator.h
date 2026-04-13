@@ -3,10 +3,11 @@
 
 #include <thread>
 #include <atomic>
-#include <vector>
 #include "thread_safe_queue.h"
 #include "sensor_simulator.h"
 #include "sliding_window.h"
+
+static const int NUM_SENSORS = 4;
 
 class Aggregator {
 public:
@@ -18,15 +19,15 @@ public:
 private:
     void consume();
 
-    int                           window_size_;
-    int                           run_seconds_;
+    int               window_size_;
+    int               run_seconds_;
 
-    ThreadSafeQueue               queue_;
-    std::atomic<bool>             stop_flag_;
-    SlidingWindow                 window_;
+    ThreadSafeQueue   queue_;
+    std::atomic<bool> stop_flag_;
+    SlidingWindow     window_;
 
-    std::vector<SensorSimulator*> simulators_;
-    std::vector<std::thread>      threads_;
+    SensorSimulator*  simulators_[NUM_SENSORS];
+    std::thread       threads_[NUM_SENSORS + 1]; // 4 sensors + 1 consumer
 };
 
 #endif // AGGREGATOR_H

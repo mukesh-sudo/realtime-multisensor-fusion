@@ -19,6 +19,7 @@ private:
     double             freq_hz_;
     ThreadSafeQueue*   queue_;
     std::atomic<bool>* stop_flag_;
+    unsigned int       seed_;  // per-thread seed — avoids rand() data race
 };
 
 #endif // SENSOR_SIMULATOR_H
