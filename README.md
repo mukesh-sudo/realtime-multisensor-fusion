@@ -95,14 +95,6 @@ Clean rebuild:
 cmake --build .\build --clean-first
 ```
 
-### Windows (Git Bash)
-
-```bash
-mkdir -p build && cd build
-cmake .. -G "Unix Makefiles"
-cmake --build .
-```
-
 ## Running
 
 ```bash
